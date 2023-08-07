@@ -1,0 +1,107 @@
+TCP Client & Server Program of String 
+    
+Q1: 1. Write and run a TCP Client and a TCP Server program using 'C' language in
+Unix/Linux according to the following specifications : 20
+• Client will send a text string to the Server.
+• Server will send back the number of characters in the string to the
+respective Client.
+
+Ans:
+SERVER:
+    #include<stdio.h>
+    #include<sys/types.h>
+    #include<sys/socket.h>
+    #include<netinet/in.h>
+    #include<errno.h>
+    #include<unistd.h>
+    int main(int argc,char *argv[])
+    {
+    socklen_t sid,clen;
+    char buffer[1024];
+    struct sockaddr_in saddr,caddr;int n;if(argc<2)
+    {
+    fprintf(stderr,"ERROR: port is not given \n");
+    exit(1);
+    }
+    sid=socket(AF_INET,SOCK_DGRAM,0);
+    if(sid<0) 
+    perror("socket_create");
+    bzero((char*)&saddr,sizeof(saddr));
+    saddr.sin_family=AF_INET;
+    saddr.sin_port=htons(atoi(argv[1]));
+    saddr.sin_addr.s_addr=INADDR_ANY;
+    if(bind(sid,(struct    sockaddr *)&saddr,sizeof(saddr))<0)
+    perror("socket_bind");
+    clen=sizeof(caddr);
+    bzero(buffer,1024);
+    n=recvfrom(sid,buffer,1023,0,(struct sockaddr*)&caddr,&clen);
+    if(n<0) 
+    perror("receive");
+    printf("The msg is %s", buffer);
+    close(sid);
+    return 0;
+    }
+     
+     
+     
+     
+     
+     
+     
+     
+     
+    CLIENT:
+    #include <netdb.h>
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <errno.h>
+    int main(int argc,char *argv[])
+    {
+    int sid,n;
+    char buffer[1024];
+    struct sockaddr_in saddr;
+    struct hostent *hen;
+    if(argc<3)
+    {
+    fprintf(stderr,”Error: Host name and port is not given \n”);
+    exit(1);
+    }
+    sid=socket(AF_INET,SOCK_DGRAM,0);
+    if(sid<0)
+    perror("Socket create");
+    hen=gethostbyname(argv[1]);
+    if(hen==NULL)
+    {
+    fprintf(stdout,"Host not found");
+    exit(1);
+    }
+    saddr.sin_family=AF_INET;
+    saddr.sin_port=htons(atoi(argv[2]));
+    bcopy((char *)hen->h_addr,(char *)&saddr.sin_addr.s_addr,hen->h_length);
+    if(bind(sid,(struct sockaddr *)&saddr,sizeof(saddr))<0) 
+    perror("Socket_bind");
+    printf("Enter the data u want to send : \n");
+    fgets(buffer,1023,stdin);
+    n=sendto(sid,buffer,1023,0,(struct sockaddr *)&saddr,sizeof(saddr));
+    if(n<0) 
+    perror(“Error in send to”);
+    close(sid);
+    return(0);
+    }
+
+
+OUTPUT:
+CLIENT
+[ite4046@linuxserver]$ cc udpclient.c
+[ite4046@linuxserver]$ cc udpclient.c -o
+ucli[ite4046@linuxserver]$ ./ucli linuxserver 3927
+Enter the data u want to send :Hello, how are you?
+[ite4046@linuxserver]$
+
+SERVER:
+[ite4046@linuxserver]$ cc udpserver.c
+[ite4046@linuxserver]$ cc udpserver.c -o user
+[ite4046@linuxserver]$ ./user 3927The msg is Hello, how are you?
+[ite4046@linuxserver]$
